@@ -21,10 +21,10 @@ RUN python3 -m pip install --upgrade pip && \
     rm /requirements.txt
 
 # Install AnimateDiff
-RUN git clone https://github.com/guoyww/AnimateDiff.git
+# RUN git clone https://github.com/guoyww/AnimateDiff.git
 
-# Add src files (Worker Template)
-ADD src /AnimateDiff
+# # Add src files (Worker Template)
+# ADD src /AnimateDiff
 
 # Fetch the model
 COPY builder/model_fetcher.py /model_fetcher.py
