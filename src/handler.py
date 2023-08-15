@@ -2,6 +2,11 @@
 ''' Contains the handler function that will be called by the serverless. '''
 
 import runpod
+from runpod.serverless.utils.rp_validator import validate
+from runpod.serverless.utils import rp_upload
+from runpod.serverless.utils import rp_download, upload_file_to_bucket
+from rp_schema import INPUT_SCHEMA
+import uuid
 
 # Load models into VRAM here so they can be warm between requests
 
@@ -46,11 +51,16 @@ def model():
     return pipeline
 
 
-def handler(event):
+def handler(job):
     '''
     This is the handler function that will be called by the serverless.
     '''
-    print(event)
+    job_input = job['input']
+
+    if 'errors' in (job_input := validate(job_input, INPUT_SCHEMA)):
+        return {'error': job_input['errors']}
+    job_input = job_input['validated_input']
+    print('input:',job_input)
     import os
     import sys
     import torch
@@ -71,10 +81,10 @@ def handler(event):
      # Other params
     lora_alpha=0.8
     base=""
-    full_path = "models/DreamBooth_LoRA/toonyou_beta3.safetensors"
+    full_path = f"models/DreamBooth_LoRA/{job_input['base_model']}"
 
     # Load motion model
-    motion_path = "models/Motion_Module/mm_sd_v14.ckpt"
+    motion_path = f"models/Motion_Module/{job_input['motion_model']}"
     motion_module_state_dict = torch.load(motion_path, map_location="cpu")
     missing, unexpected = pipeline.unet.load_state_dict(motion_module_state_dict, strict=False)
     assert len(unexpected) == 0
@@ -104,25 +114,32 @@ def handler(event):
         pipeline = convert_lora(pipeline, state_dict, alpha=lora_alpha)
 
     pipeline.to("cuda")
-
-    outname = "output.gif"
+    uid = uuid.uuid4()
+    outname = f"{uid}.gif"
     outpath = f"./{outname}"
     sample = pipeline(
-        prompt,
-        negative_prompt     = "",
-        num_inference_steps = 25,
-        guidance_scale      = 7.5,
-        width               = 512,
-        height              = 512,
-        video_length        = 16,
+        prompt              = job_input['prompt'],
+        negative_prompt     = job_input['negative_prompt'],
+        num_inference_steps = job_input['steps'],
+        guidance_scale      = job_input['guidance_scale'],
+        width               = job_input['width'],
+        height              = job_input['height'],
+        video_length        = job_input['video_length'],
     ).videos
     samples = torch.concat([sample])
     save_videos_grid(samples, outpath , n_rows=1)
-    output_data = None
-    with open(outpath, "rb") as file:
-        output_data = file.read()
+    uploaded_url = upload_file_to_bucket(
+        file_name=f"{outname}",
+        file_location=f"{outpath}",
+        bucket_name=None if job_input['bucket_name'] is None else job_input['bucket_name']
+    )
+    return { "url": uploaded_url}
+    # output_data = None
+    # image_url = rp_upload.upload_image(job['id'], outpath)
+    # with open(outpath, "rb") as file:
+    #     output_data = file.read()
 
-    return output_data
+    # return output_data
 
 
     # return the output that you want to be returned like pre-signed URLs to output artifacts
@@ -132,4 +149,3 @@ def handler(event):
 if __name__ == "__main__":
     runpod.serverless.start({"handler": handler})
 
-prompt = "masterpiece, best quality, 1girl, solo, cherry blossoms, hanami, pink flower, white flower, spring season, wisteria, petals, flower, plum blossoms, outdoors, falling petals, white hair, black eyes"

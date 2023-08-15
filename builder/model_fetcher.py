@@ -30,7 +30,8 @@ def download_motion_module():
     if os.path.exists(model_path):
         print("Downloading model: mm_sd_v14")
         url = "https://huggingface.co/guoyww/animatediff/resolve/main/mm_sd_v14.ckpt"
-        os.system(f"cd {model_path} && wget {url}")
+        url2 = "https://huggingface.co/guoyww/animatediff/resolve/main/mm_sd_v15.ckpt"
+        os.system(f"cd {model_path} && wget {url} && wget {url2}")
         print("Done")
 
 

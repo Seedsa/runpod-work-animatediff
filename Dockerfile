@@ -1,6 +1,6 @@
 # Base image
 FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu20.04
-
+# FROM runpod/pytorch:2.0.1-py3.10-cuda11.8.0-devel
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Use bash shell with pipefail option
@@ -28,11 +28,11 @@ RUN python3 -m pip install --upgrade pip && \
 
 # Fetch the model
 COPY builder/model_fetcher.py /model_fetcher.py
-RUN python3 /model_fetcher.py --model_url=${MODEL_URL}
+RUN python3 /model_fetcher.py
 RUN rm /model_fetcher.py
 
 # 测试
-COPY test_input.json /
+# COPY test_input.json /
 
 
 # Add src files (Worker Template)

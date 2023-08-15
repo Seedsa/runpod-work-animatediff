@@ -1,4 +1,14 @@
 INPUT_SCHEMA = {
+    'base_model': {
+        'type': str,
+        'required': False,
+        'default': 'toonyou_beta3.safetensors'
+    },
+    'motion_model': {
+        'type': str,
+        'required': False,
+        'default': 'mm_sd_v14.ckpt'
+    },
     'prompt': {
         'type': str,
         'required': True
@@ -25,11 +35,11 @@ INPUT_SCHEMA = {
         'default': 512,
         'constraints': lambda height: height in [128, 256, 384, 448, 512, 576, 640, 704, 768]
     },
-    'num_inference_steps': {
+    'steps': {
         'type': int,
         'required': False,
         'default': 25,
-        'constraints': lambda num_inference_steps: 0 < num_inference_steps < 500
+        'constraints': lambda steps: 0 < steps < 500
     },
     'guidance_scale': {
         'type': float,
@@ -45,6 +55,11 @@ INPUT_SCHEMA = {
     },
     'seed': {
         'type': int,
+        'required': False,
+        'default': None
+    },
+    'bucket_name': {
+        'type': str,
         'required': False,
         'default': None
     },
