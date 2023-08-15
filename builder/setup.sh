@@ -6,9 +6,11 @@ set -e
 # Update System
 apt-get update && apt-get upgrade -y
 
+# 修改源
+
 # Install System Dependencies
 # - openssh-server: for ssh access and web terminal
-apt-get install -y --no-install-recommends software-properties-common curl git openssh-server
+apt-get install -y --no-install-recommends software-properties-common curl vim git openssh-server google-perftools wget build-essential
 
 # Install Python 3.10
 add-apt-repository ppa:deadsnakes/ppa -y

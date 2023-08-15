@@ -20,6 +20,11 @@ RUN python3 -m pip install --upgrade pip && \
     python3 -m pip install --upgrade -r /requirements.txt --no-cache-dir && \
     rm /requirements.txt
 
+# Fetch the model
+COPY builder/model_fetcher.py /model_fetcher.py
+RUN python /model_fetcher.py --model_url=${MODEL_URL}
+RUN rm /model_fetcher.py
+
 # Add src files (Worker Template)
 ADD src .
 
